@@ -1,0 +1,56 @@
+---
+version: '2.2'
+services:
+
+    sharelatex:
+      restart: always
+      image: "wqyjh/sharelatex:texlive-full"
+      container_name: sharelatex
+      volumes:
+          - "./latex_data:/var/lib/sharelatex"
+          - "./latex_files:/tmp/files"
+      ports:
+          - "8080:80"
+      environment:
+        SHARELATEX_MONGO_URL: "mongodb://mongo/sharelatex"
+        SHARELATEX_REDIS_HOST: "redis"
+        REDIS_HOST: "redis"
+        SHARELATEX_APP_NAME: "My Overleaf"
+        ENABLED_LINKED_FILE_TYPES: "project_file,project_output_file"
+        ENABLE_CONVERSIONS: "true"
+        EMAIL_CONFIRMATION_DISABLED: "true"
+        # temporary fix for LuaLaTex compiles
+        # see https://github.com/overleaf/overleaf/issues/695
+        TEXMFVAR: /var/lib/sharelatex/tmp/texmf-var
+      depends_on:
+        mongo:
+          condition: service_healthy
+        redis:
+          condition: service_started
+      links:
+        - mongo
+        - redis
+
+    mongo:
+      restart: always
+      image: "mongo:4.0"
+      container_name: mongo
+      volumes:
+          - "./mongo_data:/data/db"
+      expose:
+          - 27017
+      healthcheck:
+          test: echo 'db.stats().ok' | mongo localhost:27017/test --quiet
+          interval: 10s
+          timeout: 10s
+          retries: 5
+
+
+    redis:
+        restart: always
+        image: "redis:5.0"
+        volumes:
+            - "./redis_data:/data"
+        container_name: redis
+        expose:
+            - 6379
