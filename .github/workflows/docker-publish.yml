@@ -90,7 +90,7 @@ jobs:
           build-args: |
             SHARELATEX_BASE_TAG=${{ env.IMAGE_NAME }}:base
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.IMAGE_NAME }}:texlive-full
+          tags: ${{ env.IMAGE_NAME }}:texlive
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push texlive-full
